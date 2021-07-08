@@ -2,9 +2,10 @@
 import pytest
 
 from dns_deep_state import dns
-from dns_deep_state.exceptions import DomainError
+from dns_deep_state.exceptions import DomainError, DnsQueryError
 
-from dns.resolver import NoAnswer, NXDOMAIN, NoNameservers
+from dns.resolver import NoAnswer, NXDOMAIN, YXDOMAIN, NoNameservers
+from dns.exception import Timeout
 
 
 def test_constructor_known_tld():
@@ -51,11 +52,13 @@ def test_canonical_name_not_found(mocker):
     assert canon == None
 
 
-@pytest.mark.parametrize("exception", [NXDOMAIN, NoNameservers])
-def test_lookup_server_error(mocker, exception):
+@pytest.mark.parametrize("raised_excpt,expected_excpt",
+                         [(NXDOMAIN, DomainError), (NoNameservers, DomainError),
+                          (YXDOMAIN, DnsQueryError), (Timeout, DnsQueryError)])
+def test_lookup_server_error(mocker, raised_excpt, expected_excpt):
     """No result found or no nameserver."""
     resolver = resolver_without_psl(mocker)
-    stub_resolve = mocker.Mock(side_effect=exception)
+    stub_resolve = mocker.Mock(side_effect=raised_excpt)
     mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
-    with pytest.raises(DomainError):
+    with pytest.raises(expected_excpt):
         resolver.lookup("nope.domain.tld", "A")

@@ -3,3 +3,6 @@
 
 class DomainError(Exception):
     """The domain name does not exist."""
+
+class DnsQueryError(Exception):
+    """The DNS query failed."""

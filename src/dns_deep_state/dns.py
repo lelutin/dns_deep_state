@@ -1,7 +1,8 @@
 """Query the DNS about some aspects of a domain."""
+import dns.exception
 import dns.resolver
 
-from dns_deep_state.exceptions import DomainError
+from dns_deep_state.exceptions import DnsQueryError, DomainError
 from publicsuffix2 import PublicSuffixList
 
 
@@ -44,12 +45,10 @@ class Dns:
     def canonical_name(self, hostname):
         """Given that hostname is a CNAME, resolve its canonical name.
 
-        If hostname doesn't have a CNAME-type RR entry, the return value will
-        be None.
+        Returns a string containing the canonical name if found. Otherwise,
+        returns None.
 
-        Otherwise, a string containing the canonical name will be returned.
-
-        Raises the same exceptions as lookup().
+        Raises the same exceptions as lookup(), except for NoAnswer.
 
         If you care about the presence of a CNAME for a hostname, it is best to
         resolve the canonical name first. Looking up the A record for a
@@ -82,7 +81,12 @@ class Dns:
         Raises `dns_deep_state.exceptions.DomainError` in cases where:
           * we receive NXDOMAIN, meaning that the domain name might not be registered
           * the dns library can't find NS servers
-        Lets other exceptions raised from resolve() move higher up.
+        Raises `dns_deep_state.exceptions.DnsQueryError` in cases where:
+          * we recieve YXDOMAIN, meaning that the query was malformed (too long)
+          * the query timed out
+
+        Lets `dns.resolver.NoAnswer move higher up in order for wrapper methods
+        to handle this case.
         """
         try:
             response = self.res.resolve(hostname, lookup_type)
@@ -94,5 +98,9 @@ class Dns:
         except dns.resolver.NoNameservers as err:
             # Got SERVFAIL, nothing else will resolve for this domain
             raise DomainError(err)
+        except dns.resolver.YXDOMAIN as err:
+            raise DnsQueryError(err)
+        except dns.exception.Timeout as err:
+            raise DnsQueryError(err)
 
         return response
