@@ -1,4 +1,6 @@
 """Query the DNS about some aspects of a domain."""
+from typing import Optional
+
 import dns.exception
 import dns.resolver
 
@@ -19,7 +21,7 @@ class Dns:
     those too.
     """
 
-    def __init__(self, fqdn):
+    def __init__(self, fqdn: str) -> None:
         """Prepare DNS resolver."""
         self.res = dns.resolver.Resolver()
         if not hasattr(self.res, "resolve"):
@@ -42,7 +44,7 @@ class Dns:
         if self.domain_name is None:
             raise DomainError("{} is not using a known public suffix or TLD".format(fqdn))
 
-    def canonical_name(self, hostname):
+    def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
 
         Returns a string containing the canonical name if found. Otherwise,
@@ -68,7 +70,7 @@ class Dns:
 
         return response
 
-    def lookup(self, hostname, lookup_type):
+    def lookup(self, hostname: str, lookup_type: str) -> dns.resolver.Answer:
         """Grab DNS RR of type `lookup_type` for `hostname`.
 
         Returns whatever response object we got from the dnspython library.

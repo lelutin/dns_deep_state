@@ -12,11 +12,11 @@ class Hosts:
     it's important to check whether you have such an override in place.
     """
 
-    def __init__(self, hosts_database="/etc/hosts"):
+    def __init__(self, hosts_database: str = "/etc/hosts") -> None:
         """Prepare all relevant drivers for queries."""
         self.hosts_database = hosts_database
 
-    def in_database(self, hostname):
+    def in_database(self, hostname: str) -> bool:
         """Check whether a hostname is present in the local hosts database."""
         with open(self.hosts_database, 'r') as hosts:
             for line in hosts.readlines():
