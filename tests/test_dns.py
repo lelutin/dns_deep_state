@@ -50,11 +50,12 @@ def test_canonical_name_not_found(mocker):
     canon = resolver.canonical_name("nope.domain.tld")
     assert canon == None
 
+
 @pytest.mark.parametrize("exception", [NXDOMAIN, NoNameservers])
-def test_canonical_name_server_error(mocker, exception):
+def test_lookup_server_error(mocker, exception):
     """No result found or no nameserver."""
     resolver = resolver_without_psl(mocker)
     stub_resolve = mocker.Mock(side_effect=exception)
     mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
     with pytest.raises(DomainError):
-        resolver.canonical_name("nope.domain.tld")
+        resolver.lookup("nope.domain.tld", "A")

@@ -49,19 +49,43 @@ class Dns:
 
         Otherwise, a string containing the canonical name will be returned.
 
-        Raises `dns_deep_state.exceptions.DomainError` in cases where:
-          * we receive NXDOMAIN, meaning that the domain name might not be registered
-          * the dns library can't find NS servers
+        Raises the same exceptions as lookup().
+
+        If you care about the presence of a CNAME for a hostname, it is best to
+        resolve the canonical name first. Looking up the A record for a
+        hostname that has a CNAME will automatically be dereferenced so it
+        won't tell you if there was a CNAME in the way to getting the IP
+        address.
         """
         try:
-            response = self.res.resolve(hostname, 'CNAME').canonical_name
+            response = self.lookup(hostname, "CNAME").canonical_name
         except dns.resolver.NoAnswer:
             # This response from DNS servers means that hostname does not have
             # a CNAME RR, which is not per se an error.
             # It's possible with this response that the subdomain doesn't exist
-            # at all. The only way to verify this is query for other RR types
+            # at all. The only way to verify this is by querying for other RR types
             # for the same subdomain.
             response = None
+
+        return response
+
+    def lookup(self, hostname, lookup_type):
+        """Grab DNS RR of type `lookup_type` for `hostname`.
+
+        Returns whatever response object we got from the dnspython library.
+        Wrappers to this method should handle those response objects
+        accordingly and hide the library details from their own responses by
+        reformatting. This'll make sure that only a limited number of methods
+        in this class handle implementation details with regards to how DNS
+        entries are looked up.
+
+        Raises `dns_deep_state.exceptions.DomainError` in cases where:
+          * we receive NXDOMAIN, meaning that the domain name might not be registered
+          * the dns library can't find NS servers
+        Lets other exceptions raised from resolve() move higher up.
+        """
+        try:
+            response = self.res.resolve(hostname, lookup_type)
         except dns.resolver.NXDOMAIN as err:
             # In the case of CNAME queries, we'll get NXDOMAIN if the domain
             # name is not registered at all. In those cases, there's not much
