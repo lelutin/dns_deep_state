@@ -17,7 +17,7 @@ def test_hostname_found(mocker, hostname, result):
     """We're searching for a hostname which is present in the database."""
     m = mocker.patch('builtins.open', mocker.mock_open(read_data=hosts_file))
 
-    h = hosts.Hosts()
+    h = hosts.HostsProbe()
     present = h.in_database(hostname)
 
     m.assert_called_once_with("/etc/hosts", "r")

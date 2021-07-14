@@ -2,7 +2,7 @@
 import re
 
 
-class Hosts:
+class HostsProbe:
     """Test for presence of a hostname inside the local hosts file.
 
     This file is usually found in /etc/hosts in unix/linux systems.

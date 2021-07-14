@@ -5,10 +5,9 @@ import dns.exception
 import dns.resolver
 
 from dns_deep_state.exceptions import DnsQueryError, DomainError
-from publicsuffix2 import PublicSuffixList
 
 
-class Dns:
+class DnsProbe:
     """Starting with an FQDN, inspect DNS state and consistency of configuration.
 
     DNS depends on the domain registration to be in order, so Registry checks
@@ -21,7 +20,7 @@ class Dns:
     those too.
     """
 
-    def __init__(self, fqdn: str) -> None:
+    def __init__(self) -> None:
         """Prepare DNS resolver."""
         self.res = dns.resolver.Resolver()
         if not hasattr(self.res, "resolve"):
@@ -38,11 +37,6 @@ class Dns:
         # certain DNS servers take too long to respond.
         self.res.timeout = 3
         self.res.lifetime = 3
-
-        psl = PublicSuffixList()
-        self.domain_name = psl.get_sld(fqdn, strict=True)
-        if self.domain_name is None:
-            raise DomainError("{} is not using a known public suffix or TLD".format(fqdn))
 
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
