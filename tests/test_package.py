@@ -11,12 +11,13 @@ import json
 import pytest
 
 from dns_deep_state import dns_deep_state
-from dns_deep_state.exceptions import DomainError
 
 
 def test_report_known_tld():
     """Checking a domain that uses one of the known "public suffixes"."""
     reporter = dns_deep_state()
+    # TODO stub out calls to full_report on individual probes since that's not
+    # what we want to test here
 
     r = json.loads(reporter.full_report("example.com"))
     assert r["domain"] == "example.com"
@@ -28,5 +29,5 @@ def test_constructor_unknown_tld():
     """Checking a domain that doesn't have one of the "public suffixes"."""
     reporter = dns_deep_state()
 
-    with pytest.raises(DomainError):
+    with pytest.raises(ValueError):
         reporter.full_report("blah.patate")

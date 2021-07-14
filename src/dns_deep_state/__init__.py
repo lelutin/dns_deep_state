@@ -17,7 +17,6 @@ Rough early specs:
 import json
 
 from dns_deep_state.dns import DnsProbe
-from dns_deep_state.exceptions import DomainError
 from dns_deep_state.hosts import HostsProbe
 from publicsuffix2 import PublicSuffixList
 
@@ -62,13 +61,13 @@ class dns_deep_state:
 
         domain_name = self.psl.get_sld(fqdn, strict=True)
         if domain_name is None:
-            raise DomainError("{} is not using a known public suffix or TLD".format(fqdn))
+            raise ValueError("{} is not using a known public suffix or TLD".format(fqdn))
         report["domain"] = domain_name
         
         #report["registry"] = self.registry.full_report(fqdn)
-        #report["dns"] = self.dns.full_report(fqdn)
+        report["dns"] = json.loads(self.dns.full_report(fqdn))
         # TODO still not sure about this part, we might want to inspect a
         # number of hosts on dns too...
-        #report["hosts"] = self.hosts.full_report(fqdn)
+        report["hosts"] = json.loads(self.hosts.full_report(fqdn))
 
         return json.dumps(report)
