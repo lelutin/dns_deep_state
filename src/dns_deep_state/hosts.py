@@ -16,6 +16,10 @@ class HostsProbe:
         """Prepare all relevant drivers for queries."""
         self.hosts_database = hosts_database
 
+    def full_report(self, fqdn: str) -> str:
+        """Run all inspections and produce a full JSON report."""
+        return "{}"
+
     def in_database(self, hostname: str) -> bool:
         """Check whether a hostname is present in the local hosts database."""
         with open(self.hosts_database, 'r') as hosts:

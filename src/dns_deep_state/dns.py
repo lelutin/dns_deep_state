@@ -38,6 +38,10 @@ class DnsProbe:
         self.res.timeout = 3
         self.res.lifetime = 3
 
+    def full_report(self, fqdn: str) -> str:
+        """Run all inspections and produce a full JSON report."""
+        return "{}"
+
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
 
