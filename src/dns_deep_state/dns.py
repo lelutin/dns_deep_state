@@ -10,14 +10,14 @@ from dns_deep_state.exceptions import DnsQueryError, DomainError
 class DnsProbe:
     """Starting with an FQDN, inspect DNS state and consistency of configuration.
 
-    DNS depends on the domain registration to be in order, so Registry checks
-    should happen before we can reach this aspect of the infrastructure.
+    In order to have properly functional services, many details in the DNS need
+    to be setup properly.  Furthermore, some details that are optional help
+    with different aspects of verfications and validation by third parties, so
+    we need to take a look at those too.
 
-    This is the main point where complexity expands. In order to have properly
-    functional services, many details in the DNS need to be setup properly.
-    Furthermore, some details that are optional help with different aspects of
-    verfications and validation by third parties, so we need to take a look at
-    those too.
+    .. note:: DNS depends on the domain registration to be in order, so
+        Registry checks should happen before we can reach this aspect of the
+        infrastructure.
     """
 
     def __init__(self) -> None:
@@ -45,16 +45,18 @@ class DnsProbe:
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
 
-        Returns a string containing the canonical name if found. Otherwise,
-        returns None.
+        :return: a string containing the canonical name if found. Otherwise,
+            return `None`.
 
-        Raises the same exceptions as lookup(), except for NoAnswer.
+        :raises: See :meth:`lookup`. `NoAnswer` is not raised though.
 
-        If you care about the presence of a CNAME for a hostname, it is best to
-        resolve the canonical name first. Looking up the A record for a
-        hostname that has a CNAME will automatically be dereferenced so it
-        won't tell you if there was a CNAME in the way to getting the IP
-        address.
+        .. note::
+
+            If you care about the presence of a CNAME for a hostname, it is
+            best to resolve the canonical name first. Looking up the A record
+            for a hostname that has a CNAME will automatically be dereferenced
+            so it won't tell you if there was a CNAME in the way to getting the
+            IP address.
         """
         try:
             response = self.lookup(hostname, "CNAME").canonical_name
@@ -71,22 +73,21 @@ class DnsProbe:
     def lookup(self, hostname: str, lookup_type: str) -> dns.resolver.Answer:
         """Grab DNS RR of type `lookup_type` for `hostname`.
 
-        Returns whatever response object we got from the dnspython library.
-        Wrappers to this method should handle those response objects
-        accordingly and hide the library details from their own responses by
-        reformatting. This'll make sure that only a limited number of methods
-        in this class handle implementation details with regards to how DNS
-        entries are looked up.
+        :returns: whatever response object we got from the dnspython library.
+            Wrappers to this method should handle those response objects
+            accordingly and hide the library details from their own responses
+            by reformatting. This'll make sure that only a limited number of
+            methods in this class handle implementation details with regards to
+            how DNS entries are looked up.
 
-        Raises `dns_deep_state.exceptions.DomainError` in cases where:
-          * we receive NXDOMAIN, meaning that the domain name might not be registered
-          * the dns library can't find NS servers
-        Raises `dns_deep_state.exceptions.DnsQueryError` in cases where:
-          * we recieve YXDOMAIN, meaning that the query was malformed (too long)
-          * the query timed out
-
-        Lets `dns.resolver.NoAnswer move higher up in order for wrapper methods
-        to handle this case.
+        :raises dns_deep_state.exceptions.DomainError: received NXDOMAIN,
+            meaning that the domain name might not be registered, or the dns
+            library can't find NS servers
+        :raises dns_deep_state.exceptions.DnsQueryError: recieved YXDOMAIN,
+            meaning that the query was malformed (too long), or the query timed
+            out
+        :raises dns.resolver.NoAnswer: in order for wrapper methods to handle
+            this case.
         """
         try:
             response = self.res.resolve(hostname, lookup_type)

@@ -55,8 +55,26 @@ class dns_deep_state:
         self.hosts = HostsProbe()
 
     def full_report(self, fqdn: str):
-        """Grab information about `fqdn` and produce a report about it."""
-        # TODO decide exactly what structure the report should take
+        """Grab information about `fqdn` and produce a report about it.
+
+        :param fqdn: The fully qualified domain name for which a report is
+            produced.
+
+        :raises ValueError: If `fqdn` is not using a known public suffix.
+            Indeed, we'll be prodding some public services for information
+            about the domain, so it doesn't make much sense to run the
+            information gathering for a domain name that won't have any valid
+            information on those services.
+
+        :return: a JSON-serialized data structure
+
+        .. note::
+            If `fqdn` is not a second-level domain (e.g. the name that would be
+            registered with a registry, the report will be run on the
+            second-level domain part of it instead.
+
+        """
+        #TODO decide exactly what structure the report should take
         report = {}
 
         domain_name = self.psl.get_sld(fqdn, strict=True)
