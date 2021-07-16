@@ -1,4 +1,0 @@
-pytest==6.2.3
-pytest-mock==3.5.1
-publicsuffix2
-dnspython
