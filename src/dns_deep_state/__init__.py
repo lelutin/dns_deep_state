@@ -71,6 +71,7 @@ class dns_deep_state:
         report["dns"] = self.dns.full_report(fqdn)
         # TODO extract portion of report with resolved hosts and give that to
         # the next report method instead of fqdn
-        report["hosts"] = json.loads(self.hosts.full_report(fqdn))
+        hostnames = set([])
+        report["hosts"] = self.hosts.full_report(hostnames)
 
         return json.dumps(report)
