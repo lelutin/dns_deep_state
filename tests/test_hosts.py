@@ -5,6 +5,7 @@ import pytest
 
 hosts_file = """127.0.0.1 localhost
 
+#192.168.10.10 nope ## this line should not match
 192.168.10.12 remote remote.domain # this should still match
 192.158.10.25 hostname.fqdn"""
 
