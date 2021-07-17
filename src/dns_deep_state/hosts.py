@@ -19,16 +19,15 @@ class HostsProbe:
         :param database_path: absolute path to the local hosts database file.
         """
         self.database_path = database_path
-        
+
         self._hosts_cache = []
         with open(self.database_path, 'r') as hosts:
             for line in hosts.readlines():
                 self._hosts_cache.append(line)
 
-
     def full_report(self, hosts: set[str]) -> dict:
         """Produce a report about the presence of hosts in the local database.
-        
+
         Host names will not be verified for validity, only whether or not they
         are in the local hosts database.
 

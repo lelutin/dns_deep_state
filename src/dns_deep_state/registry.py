@@ -1,5 +1,6 @@
 """Query domain registries about a domain name."""
 
+
 class RegistryProbe:
     """Find out how a domain is registered and its status.
 

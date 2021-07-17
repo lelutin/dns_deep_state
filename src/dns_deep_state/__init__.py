@@ -21,6 +21,7 @@ from dns_deep_state.hosts import HostsProbe
 from dns_deep_state.registry import RegistryProbe
 from publicsuffix2 import PublicSuffixList
 
+
 class dns_deep_state:
     """Gather information from multiple involved systems and produce a report."""
 
@@ -59,14 +60,14 @@ class dns_deep_state:
             local hosts database
                 check reported resolved hosts for presence in local hosts database
         """
-        #TODO decide exactly what structure the report should take
+        # TODO decide exactly what structure the report should take
         report = {}
 
         domain_name = self.psl.get_sld(fqdn, strict=True)
         if domain_name is None:
             raise ValueError("{} is not using a known public suffix or TLD".format(fqdn))
         report["domain"] = domain_name
-        
+
         report["registry"] = self.reg.full_report(fqdn)
         report["dns"] = self.dns.full_report(fqdn)
         # TODO extract portion of report with resolved hosts and give that to
