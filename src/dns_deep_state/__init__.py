@@ -31,7 +31,7 @@ class dns_deep_state:
         self.dns = DnsProbe()
         self.hosts = HostsProbe()
 
-    def full_report(self, fqdn: str):
+    def full_report(self, fqdn: str) -> str:
         """Grab information about `fqdn` and produce a report about it.
 
         :param fqdn: The fully qualified domain name for which a report is
@@ -68,7 +68,7 @@ class dns_deep_state:
         report["domain"] = domain_name
         
         report["registry"] = self.reg.full_report(fqdn)
-        report["dns"] = json.loads(self.dns.full_report(fqdn))
+        report["dns"] = self.dns.full_report(fqdn)
         # TODO extract portion of report with resolved hosts and give that to
         # the next report method instead of fqdn
         report["hosts"] = json.loads(self.hosts.full_report(fqdn))

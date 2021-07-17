@@ -38,7 +38,7 @@ class DnsProbe:
         self.res.timeout = 3
         self.res.lifetime = 3
 
-    def full_report(self, fqdn: str) -> str:
+    def full_report(self, fqdn: str) -> dict:
         """Run all inspections and produce a full JSON report.
 
         To produce a full report we want to inspect the following details about
@@ -80,7 +80,7 @@ class DnsProbe:
               * it would be a good idea to have a parameter for extra hosts to
                 include in the report
         """
-        return "{}"
+        return {}
 
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
