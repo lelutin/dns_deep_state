@@ -1,6 +1,8 @@
 """Perform some verifications on the local hosts database."""
 import re
 
+from typing import Set
+
 
 class HostsProbe:
     """Test for presence of a hostname inside the local hosts file.
@@ -25,7 +27,7 @@ class HostsProbe:
             for line in hosts.readlines():
                 self._hosts_cache.append(line)
 
-    def full_report(self, hosts: set[str]) -> dict:
+    def full_report(self, hosts: Set[str]) -> dict:
         """Produce a report about the presence of hosts in the local database.
 
         Host names will not be verified for validity, only whether or not they
