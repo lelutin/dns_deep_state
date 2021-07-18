@@ -24,6 +24,7 @@ def test_hostname_found(mocker, hostname, result):
     m.assert_called_once_with("/etc/hosts", "r")
     assert present is result
 
+
 def test_full_report(mocker):
     """Grab a full report for a series of hosts and see that it matches expectations."""
     m = mocker.patch('builtins.open', mocker.mock_open(read_data=hosts_file))
@@ -35,5 +36,5 @@ def test_full_report(mocker):
 
     m.assert_called_once_with("/etc/hosts", "r")
     assert isinstance(rep, dict)
-    for k,v in expected.items():
+    for k, v in expected.items():
         assert v == rep[k]

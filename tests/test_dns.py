@@ -16,13 +16,14 @@ def test_canonical_name(mocker):
     canon = resolver.canonical_name("sub.domain.tld")
     assert canon == "c.domain.tld"
 
+
 def test_canonical_name_not_found(mocker):
     """No result found for requested CNAME."""
     resolver = dns.DnsProbe()
     stub_resolve = mocker.Mock(side_effect=NoAnswer)
     mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
     canon = resolver.canonical_name("nope.domain.tld")
-    assert canon == None
+    assert canon is None
 
 
 @pytest.mark.parametrize("raised_excpt,expected_excpt",

@@ -1,4 +1,4 @@
-"""Test the main module initialisation code
+"""Test the main module initialisation code.
 
 This should test that reports are generated as expected. The main module is the
 point of entry to this whole library so that's what we expect users will be
@@ -24,6 +24,7 @@ def test_report_known_tld():
 
     r2 = json.loads(reporter.full_report("www.example.com"))
     assert r2["domain"] == "example.com"
+
 
 def test_constructor_unknown_tld():
     """Checking a domain that doesn't have one of the "public suffixes"."""
