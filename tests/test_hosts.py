@@ -23,18 +23,3 @@ def test_hostname_found(mocker, hostname, result):
 
     m.assert_called_once_with("/etc/hosts", "r")
     assert present is result
-
-
-def test_full_report(mocker):
-    """Grab a full report for a series of hosts and see that it matches expectations."""
-    m = mocker.patch('builtins.open', mocker.mock_open(read_data=hosts_file))
-
-    h = hosts.HostsProbe()
-    h_list = ["hostname.fqdn", "remote", "rem", "nope", "192.158.10.25"]
-    rep = h.full_report(set(h_list))
-    expected = dict(zip(h_list, [True, True, False, False, False]))
-
-    m.assert_called_once_with("/etc/hosts", "r")
-    assert isinstance(rep, dict)
-    for k, v in expected.items():
-        assert v == rep[k]

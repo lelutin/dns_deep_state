@@ -16,13 +16,4 @@ class RegistryProbe:
     this for.
     """
 
-    def full_report(self, domain_name: str) -> dict:
-        """Run a full inspection and produce a report about what was found.
-
-        The registry should be checked for:
-            domain is registered
-            not expired
-            not in a problematic status
-            the DNS hosts in the registry have glue records
-        """
-        return {}
+    pass

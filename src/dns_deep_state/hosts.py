@@ -1,8 +1,6 @@
 """Perform some verifications on the local hosts database."""
 import re
 
-from typing import Set
-
 
 class HostsProbe:
     """Test for presence of a hostname inside the local hosts file.
@@ -12,7 +10,6 @@ class HostsProbe:
     it's important to check whether you have such an override in place.
 
     :method: in_database()
-    :method: full_report(hosts)
     """
 
     def __init__(self, database_path: str = "/etc/hosts") -> None:
@@ -26,23 +23,6 @@ class HostsProbe:
         with open(self.database_path, 'r') as hosts:
             for line in hosts.readlines():
                 self._hosts_cache.append(line)
-
-    def full_report(self, hosts: Set[str]) -> dict:
-        """Produce a report about the presence of hosts in the local database.
-
-        Host names will not be verified for validity, only whether or not they
-        are in the local hosts database.
-
-        :param hosts: Set of unique host names
-
-        :return: A dictionary with host names as keys and a boolean as values
-          to indicate if the corresponding host name was found in the local
-          database.
-        """
-        report = {}
-        for h in hosts:
-            report[h] = self.in_database(h)
-        return report
 
     def in_database(self, hostname: str) -> bool:
         """Check whether a hostname is present in the local hosts database.

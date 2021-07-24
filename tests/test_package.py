@@ -12,6 +12,8 @@ import pytest
 
 from dns_deep_state import dns_deep_state
 
+from .test_hosts import hosts_file
+
 
 def test_report_known_tld():
     """Checking a domain that uses one of the known "public suffixes"."""
@@ -32,3 +34,26 @@ def test_constructor_unknown_tld():
 
     with pytest.raises(ValueError):
         reporter.full_report("blah.patate")
+
+
+def test_local_hosts_report(mocker):
+    """Grab a report for a series of hosts and see that it matches expectations."""
+    # We need this mock before initializing the reporter, otherwise the call to
+    # the real open() will happen during instantiation
+    m = mocker.patch('builtins.open', mocker.mock_open(read_data=hosts_file))
+    # We're not testing other resolvers so we want to avoid instantiating them
+    mocker.patch("dns_deep_state.PublicSuffixList", mocker.MagicMock)
+    mocker.patch("dns_deep_state.DnsProbe", mocker.MagicMock)
+    mocker.patch("dns_deep_state.RegistryProbe", mocker.MagicMock)
+
+    reporter = dns_deep_state()
+    m.assert_called_once_with("/etc/hosts", "r")
+
+    h_list = ["hostname.fqdn", "remote", "rem", "nope", "192.158.10.25"]
+
+    rep = reporter.local_hosts_report(set(h_list))
+    expected = dict(zip(h_list, [True, True, False, False, False]))
+
+    assert isinstance(rep, dict)
+    for k, v in expected.items():
+        assert v == rep[k]
