@@ -1,4 +1,5 @@
 """Query domain registries about a domain name."""
+import whoisit
 
 
 class RegistryProbe:
@@ -16,4 +17,18 @@ class RegistryProbe:
     this for.
     """
 
-    pass
+    def __init__(self) -> None:
+        """Initialize the registry querying libraries."""
+        self.rdap_bootstrap_info = whoisit.bootstrap()
+
+    def domain_name(self, fqdn: str) -> dict:
+        """Get information about domain `fqdn` from registry database.
+
+        :param fqdn: The fully qualified domain name that we're querying
+            information for.
+
+        :returns: A dictionary containing registration information.
+        """
+        domain = whoisit.domain(fqdn)
+
+        return domain
