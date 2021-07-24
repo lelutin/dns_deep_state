@@ -10,14 +10,14 @@ import json
 
 import pytest
 
-from dns_deep_state import dns_deep_state
+from dns_deep_state.report import DomainReport
 
 from .test_hosts import hosts_file
 
 
 def test_report_known_tld():
     """Checking a domain that uses one of the known "public suffixes"."""
-    reporter = dns_deep_state()
+    reporter = DomainReport()
     # TODO stub out calls to full_report on individual probes since that's not
     # what we want to test here
 
@@ -30,7 +30,7 @@ def test_report_known_tld():
 
 def test_constructor_unknown_tld():
     """Checking a domain that doesn't have one of the "public suffixes"."""
-    reporter = dns_deep_state()
+    reporter = DomainReport()
 
     with pytest.raises(ValueError):
         reporter.full_report("blah.patate")
@@ -42,11 +42,11 @@ def test_local_hosts_report(mocker):
     # the real open() will happen during instantiation
     m = mocker.patch('builtins.open', mocker.mock_open(read_data=hosts_file))
     # We're not testing other resolvers so we want to avoid instantiating them
-    mocker.patch("dns_deep_state.PublicSuffixList", mocker.MagicMock)
-    mocker.patch("dns_deep_state.DnsProbe", mocker.MagicMock)
-    mocker.patch("dns_deep_state.RegistryProbe", mocker.MagicMock)
+    mocker.patch("dns_deep_state.report.PublicSuffixList", mocker.MagicMock)
+    mocker.patch("dns_deep_state.report.DnsProbe", mocker.MagicMock)
+    mocker.patch("dns_deep_state.report.RegistryProbe", mocker.MagicMock)
 
-    reporter = dns_deep_state()
+    reporter = DomainReport()
     m.assert_called_once_with("/etc/hosts", "r")
 
     h_list = ["hostname.fqdn", "remote", "rem", "nope", "192.158.10.25"]
