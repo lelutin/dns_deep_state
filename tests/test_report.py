@@ -13,6 +13,7 @@ import pytest
 from dns_deep_state.report import DomainReport
 
 from .test_hosts import hosts_file
+from .test_registry import expected_rdap_info
 
 
 def domain_report_mocked_probes(mocker, probe_used=None):
@@ -31,7 +32,7 @@ def domain_report_mocked_probes(mocker, probe_used=None):
         "psl": "dns_deep_state.report.PublicSuffixList",
         "registry": "dns_deep_state.report.RegistryProbe",
         "dns": "dns_deep_state.report.DnsProbe",
-        "hosts": "dns_deep_state.report.HostsProbe",
+        "local_hosts": "dns_deep_state.report.HostsProbe",
     }
 
     for name, func in probes.items():
@@ -44,6 +45,14 @@ def domain_report_mocked_probes(mocker, probe_used=None):
 
 def test_report_known_tld(mocker):
     """Checking a domain that uses one of the known "public suffixes"."""
+    # We still need to return an empty report for mocked out probes
+    # for the tests on full_report() itself to be coherent.
+    # Otherwise we get side-effects from the mocks themselves.
+    patch_prefix = "dns_deep_state.report"
+    for name in ["registry", "dns", "local_hosts"]:
+        mocker.patch(
+            "{}.DomainReport.{}_report".format(patch_prefix, name),
+            mocker.Mock(return_value={}))
     reporter = domain_report_mocked_probes(mocker, probe_used="psl")
 
     r = json.loads(reporter.full_report("example.com"))
@@ -61,6 +70,25 @@ def test_constructor_unknown_tld(mocker):
         reporter.full_report("blah.patate")
 
 
+def test_registry_report(mocker):
+    """Get a registry report for an existing domain name."""
+    module_mock = mocker.MagicMock(bootstrap=mocker.Mock)
+    module_mock.domain = mocker.Mock(return_value=expected_rdap_info)
+    mocker.patch("dns_deep_state.registry.whoisit", module_mock)
+    reporter = domain_report_mocked_probes(mocker, probe_used="registry")
+
+    r = reporter.registry_report("example.com")
+    # The report should not contain all of the information returned by the
+    # database. Only those informations help us determine if something's wrong
+    # with the registration.
+    assert len(r) == 4
+    assert r["status"] == expected_rdap_info["status"]
+    assert r["expiration_date"] == expected_rdap_info["expiration_date"]
+    expctd_reg = expected_rdap_info["entities"]["registrar"][0]["name"]
+    assert r["registrar"] == expctd_reg
+    assert r["nameservers"] == expected_rdap_info["nameservers"]
+
+
 def test_local_hosts_report(mocker):
     """Check presence in local hosts for a series of hosts.
 
@@ -71,7 +99,7 @@ def test_local_hosts_report(mocker):
     # We need this mock before initializing the reporter, otherwise the call to
     # the real open() will happen during instantiation
     m = mocker.patch('builtins.open', mocker.mock_open(read_data=hosts_file))
-    reporter = domain_report_mocked_probes(mocker, probe_used="hosts")
+    reporter = domain_report_mocked_probes(mocker, probe_used="local_hosts")
     m.assert_called_once_with("/etc/hosts", "r")
 
     h_list = ["hostname.fqdn", "remote", "rem", "nope", "192.158.10.25"]

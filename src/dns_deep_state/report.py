@@ -6,7 +6,8 @@ Rough early specs:
 
     Input should be a domain name (maybe some additional sub-domains?)
 
-    There should be a binary that uses the library and formats the report to screen
+    There should be a binary that uses the library and formats the report to
+    screen
 
     There should be some configuration format that lets you mark whether
     reported hosts are known to be something and whether it's problematic to
@@ -25,7 +26,7 @@ from dns_deep_state.registry import RegistryProbe
 
 
 class DomainReport:
-    """Gather information from multiple involved systems and produce a report."""
+    """Inspect the state of a domain name and report on possible issues."""
 
     def __init__(self):
         """Initialise information probes."""
@@ -53,21 +54,20 @@ class DomainReport:
             registered with a registry, the report will be run on the
             second-level domain part of it instead.
 
-        This report should inspect grab reports from all elements and also
-        test:
+        This method inspects data returned from all probes and also
+        adds errors for the following correlations:
             the domain name uses one of the known public suffixes
                 if not, fail early
             the DNS servers in the zone match the ones in the registry
-                if not, add an error in the report about this
-            local hosts database
-                check reported resolved hosts for presence in local hosts database
+            check reported resolved hosts for presence in local hosts database
         """
         # TODO decide exactly what structure the report should take
         report = {}
 
         domain_name = self.psl.get_sld(fqdn, strict=True)
         if domain_name is None:
-            raise ValueError("{} is not using a known public suffix or TLD".format(fqdn))
+            raise ValueError(
+                "{} is not using a known public suffix or TLD".format(fqdn))
         report["domain"] = domain_name
 
         report["registry"] = self.registry_report(fqdn)
@@ -88,7 +88,13 @@ class DomainReport:
             not in a problematic status
             the DNS hosts in the registry have glue records
         """
-        return {}
+        info = self.reg.domain_name(domain_name)
+        report = {}
+        report["status"] = info["status"]
+        report["expiration_date"] = info["expiration_date"]
+        report["registrar"] = info["entities"]["registrar"][0]["name"]
+        report["nameservers"] = info["nameservers"]
+        return report
 
     def dns_report(self, fqdn: str) -> dict:
         """Run all DNS inspections and produce report as a dictionary.
@@ -98,8 +104,8 @@ class DomainReport:
             * List out NS entries
             * Grab the SOA and report the serial
               * Get the SOA from all NS entries and compare the serials. If
-                there is a mismatch, add an error in the report about a mismatch
-                in the SOA and which nameservers disagree
+                there is a mismatch, add an error in the report about a
+                mismatch in the SOA and which nameservers disagree
               * If any of the NS servers fail to respond, add an error about
                 each one that failed
                 * If no NS server responded, raise an exception to fail early
