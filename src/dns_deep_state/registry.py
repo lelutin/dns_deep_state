@@ -1,4 +1,5 @@
 """Query domain registries about a domain name."""
+from dns_deep_state.exceptions import DomainError
 import whoisit
 
 
@@ -29,6 +30,9 @@ class RegistryProbe:
 
         :returns: A dictionary containing registration information.
         """
-        domain = whoisit.domain(fqdn)
+        try:
+            domain = whoisit.domain(fqdn)
+        except whoisit.errors.ResourceDoesNotExist:
+            raise DomainError("Domain {} is not registered.".format(fqdn))
 
         return domain

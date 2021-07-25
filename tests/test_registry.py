@@ -1,5 +1,9 @@
 """Test domain registry querying."""
+import pytest
+
+from dns_deep_state.exceptions import DomainError
 from dns_deep_state.registry import RegistryProbe
+import whoisit
 
 
 # It's not really necessary to have something so realistic, but it gives a
@@ -45,3 +49,17 @@ def test_domain_info_from_rdap(mocker):
     info = reg.domain_name("example.com")
 
     assert info == expected_rdap_info
+
+
+def test_domain_info_unregistered(mocker):
+    """Request information for a domain that is not currently registered."""
+    raised_exc = whoisit.errors.ResourceDoesNotExist
+    module_mock = mocker.MagicMock(
+        bootstrap=mocker.Mock,
+        errors=whoisit.errors)
+    mocker.patch("dns_deep_state.registry.whoisit", module_mock)
+    reg = RegistryProbe()
+
+    module_mock.domain = mocker.Mock(side_effect=raised_exc)
+    with pytest.raises(DomainError):
+        reg.domain_name("somethingnotthere.com")
