@@ -43,8 +43,12 @@ def domain_report_mocked_probes(mocker, probe_used=None):
     return DomainReport()
 
 
-def test_report_known_tld(mocker):
-    """Checking a domain that uses one of the known "public suffixes"."""
+def test_full_report_known_tld(mocker):
+    """Checking a domain that uses one of the known "public suffixes".
+
+    Note that we're only testing the processing that the full_report() method
+    itself is doing, not any of the probe reports.
+    """
     # We still need to return an empty report for mocked out probes
     # for the tests on full_report() itself to be coherent.
     # Otherwise we get side-effects from the mocks themselves.
@@ -62,8 +66,12 @@ def test_report_known_tld(mocker):
     assert r2["domain"] == "example.com"
 
 
-def test_constructor_unknown_tld(mocker):
-    """Checking a domain that doesn't have one of the "public suffixes"."""
+def test_full_report_unknown_tld(mocker):
+    """Checking a domain that doesn't have one of the "public suffixes".
+
+    Note that we're only testing the processing that the full_report() method
+    itself is doing, not any of the probe reports.
+    """
     reporter = domain_report_mocked_probes(mocker, probe_used="psl")
 
     with pytest.raises(ValueError):
