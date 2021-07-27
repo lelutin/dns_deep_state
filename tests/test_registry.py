@@ -63,3 +63,28 @@ def test_domain_info_unregistered(mocker):
     module_mock.domain = mocker.Mock(side_effect=raised_exc)
     with pytest.raises(DomainError):
         reg.domain_name("somethingnotthere.com")
+
+
+def test_domain_rdap_server_weak_ssl(mocker):
+    """Replies from RDAP servers with too weak ssl should still function."""
+    raised_exc = whoisit.errors.QueryError(
+        "Failed to make a GET request to "
+        "https://rdap.nominet.uk/work/domain/nic.work: "
+        "HTTPSConnectionPool(host='rdap.nominet.uk', port=443): Max retries "
+        "exceeded with url: /work/domain/nic.work (Caused by "
+        "SSLError(SSLError(1, '[SSL: DH_KEY_TOO_SMALL] dh key too small "
+        "(_ssl.c:1123)')))")
+    domain_method = mocker.Mock(
+        side_effect=[raised_exc, expected_rdap_info])
+
+    module_mock = mocker.MagicMock(
+        bootstrap=mocker.Mock,
+        errors=whoisit.errors,
+        domain=domain_method)
+    mocker.patch("dns_deep_state.registry.whoisit", module_mock)
+
+    reg = RegistryProbe()
+
+    info = reg.domain_name("nic.work")
+
+    assert info == expected_rdap_info
