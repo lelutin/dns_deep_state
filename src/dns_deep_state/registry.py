@@ -1,6 +1,8 @@
 """Query domain registries about a domain name."""
-from dns_deep_state.exceptions import DomainError
 import whoisit
+import whoisit.errors
+
+from dns_deep_state.exceptions import DomainError
 
 
 class RegistryProbe:

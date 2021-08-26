@@ -3,7 +3,7 @@ import pytest
 
 from dns_deep_state.exceptions import DomainError
 from dns_deep_state.registry import RegistryProbe
-import whoisit
+import whoisit.errors
 
 
 # It's not really necessary to have something so realistic, but it gives a
