@@ -126,10 +126,7 @@ def test_dns_report(mocker):
     r = reporter.dns_report("example.com")
 
     assert len(r["nameservers"]) == 3
-    # each entry should be a dictionary with
-    #   one key "hostname"
-    #   one key "soa_serial"
-    # a set of all "hostname" keys should be identical to mock servers
+    assert set([x["hostname"] for x in r["nameservers"]]) == name_servers
 
 
 def test_local_hosts_report(mocker):

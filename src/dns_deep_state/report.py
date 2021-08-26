@@ -149,7 +149,11 @@ class DomainReport:
             raise DomainError(
                 f"No nameserver was found for {fqdn}. Cannot go further.")
 
-        report["nameservers"] = nameservers
+        ns_data = []
+        for ns in nameservers:
+            ns_data.append({"hostname": ns})
+
+        report["nameservers"] = ns_data
 
         return report
 
