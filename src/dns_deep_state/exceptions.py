@@ -2,7 +2,7 @@
 
 
 class DomainError(Exception):
-    """The domain name does not exist."""
+    """The domain name does not exist or cannot be probed."""
 
 
 class DnsQueryError(Exception):

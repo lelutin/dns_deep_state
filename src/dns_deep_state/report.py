@@ -23,6 +23,9 @@ from publicsuffix2 import PublicSuffixList
 from dns_deep_state.dns import DnsProbe
 from dns_deep_state.hosts import HostsProbe
 from dns_deep_state.registry import RegistryProbe
+from dns_deep_state.exceptions import DomainError
+
+from dns.resolver import NoAnswer
 
 
 class DomainReport:
@@ -138,7 +141,17 @@ class DomainReport:
               * it would be a good idea to have a parameter for extra hosts to
                 include in the report
         """
-        return {}
+        report = {}
+
+        try:
+            nameservers = self.dns.name_servers(fqdn)
+        except (DomainError, NoAnswer):
+            raise DomainError(
+                f"No nameserver was found for {fqdn}. Cannot go further.")
+
+        report["nameservers"] = nameservers
+
+        return report
 
     def local_hosts_report(self, hosts: Set[str]) -> dict:
         """Produce a report about the presence of hosts in the local database.

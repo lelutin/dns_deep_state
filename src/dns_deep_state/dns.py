@@ -1,5 +1,5 @@
 """Query the DNS about some aspects of a domain."""
-from typing import Optional
+from typing import Optional, Set
 
 import dns.exception
 import dns.resolver
@@ -60,11 +60,16 @@ class DnsProbe:
             # This response from DNS servers means that hostname does not have
             # a CNAME RR, which is not per se an error.
             # It's possible with this response that the subdomain doesn't exist
-            # at all. The only way to verify this is by querying for other RR types
-            # for the same subdomain.
+            # at all. The only way to verify this is by querying for other RR
+            # types for the same subdomain.
             response = None
 
         return response
+
+    def name_servers(self, hostname: str) -> Set[str]:
+        """Get all NS entries for hostname."""
+        response = self.lookup(hostname, "NS").rrset
+        return set(response)
 
     def lookup(self, hostname: str, lookup_type: str) -> dns.resolver.Answer:
         """Grab DNS RR of type `lookup_type` for `hostname`.

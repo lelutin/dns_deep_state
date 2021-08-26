@@ -11,6 +11,7 @@ import json
 import pytest
 
 from dns_deep_state.report import DomainReport
+from dns_deep_state.exceptions import DomainError
 
 from .test_hosts import hosts_file
 from .test_registry import expected_rdap_info
@@ -95,6 +96,38 @@ def test_registry_report(mocker):
     expctd_reg = expected_rdap_info["entities"]["registrar"][0]["name"]
     assert r["registrar"] == expctd_reg
     assert r["nameservers"] == expected_rdap_info["nameservers"]
+
+
+def test_dns_report_no_nameservers(mocker):
+    """Can't find nameservers in DNS zone."""
+    raised_exc = DomainError(
+        "No nameservers were found in DNS for example.com")
+    dns_lookup = mocker.Mock(side_effect=raised_exc)
+    mocker.patch("dns_deep_state.report.DnsProbe.name_servers", dns_lookup)
+    reporter = domain_report_mocked_probes(mocker, probe_used="dns")
+
+    with pytest.raises(DomainError):
+        reporter.dns_report("example.com")
+
+
+def test_dns_report(mocker):
+    """Get all probed DNS information as a report."""
+    reporter = domain_report_mocked_probes(mocker, probe_used="dns")
+
+    # We don't care at this level how the lookup is implemented. We only care
+    # that when certain name servers are returned we get the proper form of
+    # report.
+    name_servers = {"ns1.example.com", "ns2.example.com", "ns3.example.com"}
+    dns_lookup = mocker.Mock(return_value=name_servers)
+    reporter.dns.name_servers = dns_lookup
+
+    r = reporter.dns_report("example.com")
+
+    assert len(r["nameservers"]) == 3
+    # each entry should be a dictionary with
+    #   one key "hostname"
+    #   one key "soa_serial"
+    # a set of all "hostname" keys should be identical to mock servers
 
 
 def test_local_hosts_report(mocker):
