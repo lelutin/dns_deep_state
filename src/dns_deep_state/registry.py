@@ -33,7 +33,7 @@ class RegistryProbe:
         try:
             domain = whoisit.domain(fqdn)
         except whoisit.errors.ResourceDoesNotExist:
-            raise DomainError("Domain {} is not registered.".format(fqdn))
+            raise DomainError(f"Domain {fqdn} is not registered.")
         except whoisit.errors.QueryError as e:
             if any("DH_KEY_TOO_SMALL" in s for s in e.args):
                 # Let's retry with weak ssl permitted

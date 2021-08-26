@@ -70,7 +70,7 @@ class DomainReport:
         domain_name = self.psl.get_sld(fqdn, strict=True)
         if domain_name is None:
             raise ValueError(
-                "{} is not using a known public suffix or TLD".format(fqdn))
+                f"{fqdn} is not using a known public suffix or TLD")
         report["domain"] = domain_name
 
         report["registry"] = self.registry_report(fqdn)

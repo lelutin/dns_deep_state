@@ -56,7 +56,7 @@ def test_full_report_known_tld(mocker):
     patch_prefix = "dns_deep_state.report"
     for name in ["registry", "dns", "local_hosts"]:
         mocker.patch(
-            "{}.DomainReport.{}_report".format(patch_prefix, name),
+            f"{patch_prefix}.DomainReport.{name}_report",
             mocker.Mock(return_value={}))
     reporter = domain_report_mocked_probes(mocker, probe_used="psl")
 
