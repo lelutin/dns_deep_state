@@ -122,11 +122,16 @@ def test_dns_report(mocker):
     name_servers = {"ns1.example.com", "ns2.example.com", "ns3.example.com"}
     dns_lookup = mocker.Mock(return_value=name_servers)
     reporter.dns.name_servers = dns_lookup
+    expected_soa_serial = "199974862"
+    soa_mock = mocker.Mock(serial=expected_soa_serial)
+    reporter.dns.soa = mocker.Mock(return_value=soa_mock)
 
     r = reporter.dns_report("example.com")
 
     assert len(r["nameservers"]) == 3
     assert set([x["hostname"] for x in r["nameservers"]]) == name_servers
+    for ns in r["nameservers"]:
+        assert ns["soa_serial"] == expected_soa_serial
 
 
 def test_local_hosts_report(mocker):
