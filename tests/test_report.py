@@ -35,6 +35,8 @@ def domain_report_mocked_probes(mocker, probe_used=None):
         "dns": "dns_deep_state.report.DnsProbe",
         "local_hosts": "dns_deep_state.report.HostsProbe",
     }
+    if probe_used not in probes.keys():
+        raise Exception("Unknown probe {probe_used}")
 
     for name, func in probes.items():
         if name != probe_used:
