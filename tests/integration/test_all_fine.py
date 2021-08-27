@@ -19,3 +19,7 @@ def test_live_full_report():
     # The instructions above at least test that we're not getting unexpected
     # errrors while running, and we can see what the report looks like:
     print(report)
+
+
+if __name__ == '__main__':
+    test_live_full_report()
