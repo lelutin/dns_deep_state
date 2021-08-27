@@ -38,6 +38,8 @@ class DnsProbe:
         self.res.timeout = 3
         self.res.lifetime = 3
 
+        self._saved_name_servers = None
+
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
 
@@ -146,30 +148,38 @@ class DnsProbe:
             this case.
         """
         if server is not None:
-            servers_bkp = self.res.nameservers
-            self.res.nameservers = [server]
+            self._set_nameservers([server])
 
         try:
             response = self.res.resolve(hostname, lookup_type)
         except dns.resolver.NXDOMAIN as err:
-            if server is not None:
-                self.res.nameservers = servers_bkp
+            self._reset_nameservers()
             # In the case of CNAME queries, we'll get NXDOMAIN if the domain
             # name is not registered at all. In those cases, there's not much
             # use asking further questions to DNS.
             raise DomainError(err)
         except dns.resolver.NoNameservers as err:
-            if server is not None:
-                self.res.nameservers = servers_bkp
+            self._reset_nameservers()
             # Got SERVFAIL, nothing else will resolve for this domain
             raise DomainError(err)
         except dns.resolver.YXDOMAIN as err:
-            if server is not None:
-                self.res.nameservers = servers_bkp
+            self._reset_nameservers()
             raise DnsQueryError(err)
         except dns.exception.Timeout as err:
-            if server is not None:
-                self.res.nameservers = servers_bkp
+            self._reset_nameservers()
             raise DnsQueryError(err)
 
         return response
+
+    def _set_nameservers(self, name_servers: List[str]) -> None:
+        """Change the nameservers that'll get queried for DNS.
+
+        :param name_servers: List of IP addresses of name servers.
+        """
+        self._saved_name_servers = self.res.nameservers
+        self.res.nameservers = name_servers
+
+    def _reset_nameservers(self) -> None:
+        """Set nameservers back to what was previously known, if anything."""
+        if self._saved_name_servers is not None:
+            self.res.nameservers = self._saved_name_servers

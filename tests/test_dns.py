@@ -103,3 +103,34 @@ def test_lookup_server_error(mocker, raised_excpt, expected_excpt):
     mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
     with pytest.raises(expected_excpt):
         resolver.lookup("nope.domain.tld", "A")
+
+
+def test_set_nameservers():
+    """Change the list of probed nameservers."""
+    resolver = dns.DnsProbe()
+    resolver._set_nameservers(['1.2.3.4', '9.8.7.6'])
+
+    assert resolver.res.nameservers == ['1.2.3.4', '9.8.7.6']
+
+
+def test_reset_nameservers():
+    """Put previously known nameservers back in place."""
+    resolver = dns.DnsProbe()
+    resolver.res.nameservers = ['10.10.10.10', '10.20.30.40']
+    resolver._saved_name_servers = ['192.168.99.66']
+
+    resolver._reset_nameservers()
+
+    assert resolver.res.nameservers == ['192.168.99.66']
+
+
+def test_reset_nameservers_nothing_known():
+    """Trying to reset nameservers but nothing previously known."""
+    resolver = dns.DnsProbe()
+    resolver.res.nameservers = ['5.5.5.5', '42.42.42.42']
+    # This is the default, but we'll still just force the scenario in place.
+    resolver._saved_name_servers = None
+
+    resolver._reset_nameservers()
+
+    assert resolver.res.nameservers == ['5.5.5.5', '42.42.42.42']
