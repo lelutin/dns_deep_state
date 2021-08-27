@@ -71,8 +71,45 @@ class DnsProbe:
         response = self.lookup(hostname, "NS").rrset
         return set(response)
 
-    def lookup(self, hostname: str, lookup_type: str) -> dns.resolver.Answer:
+    def soa(self, hostname: str, name_server: str) -> dict:
+        """Get a domain's SOA record.
+
+        For the purposes of this library, when we're requesting an SOA record,
+        we want to get it from one specific nameserver. This is because we want
+        to check that all servers respond with the same information.
+
+        :param hostname: The domain name for which we're looking up the SOA
+            record.
+
+        :param name_server: Hostname of the DNS server we're probing for the
+            SOA record.
+
+        :returns: A dictionary containing all information from the SOA record.
+        """
+        response = self.lookup(hostname, "SOA", server=name_server).rrset[0]
+        # Unpack to hide library details from callers
+        res = {
+            "mname": response.mname,
+            "rname": response.rname,
+            "serial": response.serial,
+            "refresh": response.refresh,
+            "retry": response.retry,
+            "expire": response.expire,
+            "ttl": response.minimum,
+        }
+
+        return res
+
+    def lookup(self, hostname: str, lookup_type: str,
+               server: Optional[str] = None) -> dns.resolver.Answer:
         """Grab DNS RR of type `lookup_type` for `hostname`.
+
+        :param hostname: The hostname for which we're requesting information
+            from the DNS.
+        :param lookup_type: The type of DNS record that we're requesting.
+        :param server: Optional hostname of the DNS server we're sending our
+            request towards. This can be used to verify that specific servers
+            are responding appropriately.
 
         :returns: whatever response object we got from the dnspython library.
             Wrappers to this method should handle those response objects
@@ -90,19 +127,31 @@ class DnsProbe:
         :raises dns.resolver.NoAnswer: in order for wrapper methods to handle
             this case.
         """
+        if server is not None:
+            servers_bkp = self.res.nameservers
+            self.res.nameservers = [server]
+
         try:
             response = self.res.resolve(hostname, lookup_type)
         except dns.resolver.NXDOMAIN as err:
+            if server is not None:
+                self.res.nameservers = servers_bkp
             # In the case of CNAME queries, we'll get NXDOMAIN if the domain
             # name is not registered at all. In those cases, there's not much
             # use asking further questions to DNS.
             raise DomainError(err)
         except dns.resolver.NoNameservers as err:
+            if server is not None:
+                self.res.nameservers = servers_bkp
             # Got SERVFAIL, nothing else will resolve for this domain
             raise DomainError(err)
         except dns.resolver.YXDOMAIN as err:
+            if server is not None:
+                self.res.nameservers = servers_bkp
             raise DnsQueryError(err)
         except dns.exception.Timeout as err:
+            if server is not None:
+                self.res.nameservers = servers_bkp
             raise DnsQueryError(err)
 
         return response

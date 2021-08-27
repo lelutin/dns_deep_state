@@ -153,9 +153,9 @@ class DomainReport:
         for ns in nameservers:
             ns_struct = {"hostname": ns}
             # TODO catch errors from this
-            serial = self.dns.soa(fqdn).serial
+            soa = self.dns.soa(fqdn)
 
-            ns_struct["soa_serial"] = serial
+            ns_struct["soa"] = soa
 
             ns_data.append(ns_struct)
 

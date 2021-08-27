@@ -39,6 +39,33 @@ def test_name_servers(mocker):
     assert ns == name_servers
 
 
+def test_soa(mocker):
+    """Request SOA for a hostname from a specific nameserver."""
+    expected = {
+        "mname": "ns1.domain.tld",
+        "rname": "hostmaster.domain.tld",
+        "serial": "1630021470",
+        "refresh": "86400",
+        "retry": "7200",
+        "expire": "4000000",
+        "ttl": "11200",
+    }
+
+    lib_rr_params = expected.copy()
+    del lib_rr_params["ttl"]
+    lib_rr_params["minimum"] = expected["ttl"]
+
+    mock_rr = mocker.Mock(**lib_rr_params)
+    mock_soa = mocker.Mock(rrset=[mock_rr])
+    stub_resolve = mocker.Mock(return_value=mock_soa)
+    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+
+    resolver = dns.DnsProbe()
+    soa = resolver.soa("domain.tld", "ns1.domain.tld")
+
+    assert soa == expected
+
+
 @pytest.mark.parametrize("raised_excpt,expected_excpt",
                          [(NXDOMAIN, DomainError),
                           (NoNameservers, DomainError),
