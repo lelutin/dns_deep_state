@@ -1,5 +1,5 @@
 """Query the DNS about some aspects of a domain."""
-from typing import Optional, Set
+from typing import Optional, Set, List
 
 import dns.exception
 import dns.resolver
@@ -67,9 +67,14 @@ class DnsProbe:
         return response
 
     def name_servers(self, hostname: str) -> Set[str]:
-        """Get all NS entries for hostname."""
+        """Get all NS entries for hostname.
+
+        This will only return the hostname strings. If you want to then send a
+        query directly to one of the nameservers, don't forget that you'll need
+        to resolve the hosts to IP addresses.
+        """
         response = self.lookup(hostname, "NS").rrset
-        return set(response)
+        return set([x.to_text() for x in response])
 
     def soa(self, hostname: str, name_server: str) -> dict:
         """Get a domain's SOA record.
@@ -81,16 +86,17 @@ class DnsProbe:
         :param hostname: The domain name for which we're looking up the SOA
             record.
 
-        :param name_server: Hostname of the DNS server we're probing for the
-            SOA record.
+        :param name_server: IP address of the DNS server we're probing for the
+            SOA record. The dnspython library is not able to query directly to
+            a hostname, so this value needs to be an IP address (v4 or v6).
 
         :returns: A dictionary containing all information from the SOA record.
         """
         response = self.lookup(hostname, "SOA", server=name_server).rrset[0]
         # Unpack to hide library details from callers
         res = {
-            "mname": response.mname,
-            "rname": response.rname,
+            "mname": response.mname.to_text(),
+            "rname": response.rname.to_text(),
             "serial": response.serial,
             "refresh": response.refresh,
             "retry": response.retry,
@@ -99,6 +105,18 @@ class DnsProbe:
         }
 
         return res
+
+    def v4_address(self, hostname: str) -> List[str]:
+        """Get A record for hostname.
+
+        :param hostname: The hostname that we'll lookup for.
+
+        :returns: A list of addresses that were found for the A record. If
+            nothing is found, the list is empty.
+        """
+        response = self.lookup(hostname, "A").rrset
+
+        return [x.to_text() for x in response]
 
     def lookup(self, hostname: str, lookup_type: str,
                server: Optional[str] = None) -> dns.resolver.Answer:

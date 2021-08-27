@@ -29,10 +29,13 @@ def test_canonical_name_not_found(mocker):
 
 def test_name_servers(mocker):
     """Request NS for a hostname."""
-    # This is not the exact type that'll come out of the library, but both are
-    # iterables, so it's a "good enough approximation"
     name_servers = {"ns1.domain.tld", "ns2.domain.tld", "ns3.domain.tld"}
-    stub_resolve = mocker.Mock(return_value=mocker.Mock(rrset=name_servers))
+    name_server_texts = mocker.Mock(side_effect=name_servers)
+    mock_rrset = [
+        mocker.Mock(to_text=name_server_texts),
+        mocker.Mock(to_text=name_server_texts),
+        mocker.Mock(to_text=name_server_texts)]
+    stub_resolve = mocker.Mock(return_value=mocker.Mock(rrset=mock_rrset))
     mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
     resolver = dns.DnsProbe()
     ns = resolver.name_servers("domain.tld")
@@ -51,9 +54,17 @@ def test_soa(mocker):
         "ttl": "11200",
     }
 
-    lib_rr_params = expected.copy()
-    del lib_rr_params["ttl"]
-    lib_rr_params["minimum"] = expected["ttl"]
+    lib_rr_params = {
+        "mname": mocker.Mock(
+            to_text=mocker.Mock(return_value=expected["mname"])),
+        "rname": mocker.Mock(
+            to_text=mocker.Mock(return_value=expected["rname"])),
+        "serial": expected["serial"],
+        "refresh": expected["refresh"],
+        "retry": expected["retry"],
+        "expire": expected["expire"],
+        "minimum": expected["ttl"],
+    }
 
     mock_rr = mocker.Mock(**lib_rr_params)
     mock_soa = mocker.Mock(rrset=[mock_rr])
@@ -64,6 +75,20 @@ def test_soa(mocker):
     soa = resolver.soa("domain.tld", "ns1.domain.tld")
 
     assert soa == expected
+
+
+def test_v4_address(mocker):
+    """Get the IPv4 address of a hostname."""
+    ip_address = "127.0.0.98"
+    mock_rr = mocker.Mock(to_text=mocker.Mock(return_value=ip_address))
+    mock_answer = mocker.Mock(rrset=[mock_rr])
+    stub_resolve = mocker.Mock(return_value=mock_answer)
+    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+
+    resolver = dns.DnsProbe()
+    v4a = resolver.v4_address("domain.tld")
+
+    assert v4a == [ip_address]
 
 
 @pytest.mark.parametrize("raised_excpt,expected_excpt",

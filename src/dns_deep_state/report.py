@@ -94,7 +94,7 @@ class DomainReport:
         info = self.reg.domain_name(domain_name)
         report = {}
         report["status"] = info["status"]
-        report["expiration_date"] = info["expiration_date"]
+        report["expiration_date"] = str(info["expiration_date"])
         report["registrar"] = info["entities"]["registrar"][0]["name"]
         report["nameservers"] = info["nameservers"]
         return report
@@ -152,8 +152,12 @@ class DomainReport:
         ns_data = []
         for ns in nameservers:
             ns_struct = {"hostname": ns}
+            # TODO add v6 addresses
+            ns_ip = {
+                "v4": self.dns.v4_address(ns),
+            }
             # TODO catch errors from this
-            soa = self.dns.soa(fqdn)
+            soa = self.dns.soa(fqdn, ns_ip["v4"][0])
 
             ns_struct["soa"] = soa
 

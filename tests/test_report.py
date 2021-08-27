@@ -127,6 +127,9 @@ def test_dns_report(mocker):
     soa_response = {"serial": "199974862"}
     reporter.dns.soa = mocker.Mock(return_value=soa_response)
 
+    ns_ips = ["127.0.0.121", "127.0.0.122", "127.0.0.123"]
+    reporter.dns.v4_address = mocker.Mock(side_effect=ns_ips)
+
     r = reporter.dns_report("example.com")
 
     assert len(r["nameservers"]) == 3
