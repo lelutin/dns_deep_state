@@ -29,7 +29,7 @@ from dns_deep_state.registry import RegistryProbe
 from dns_deep_state.exceptions import DomainError
 
 if TYPE_CHECKING:
-    from typing import Set
+    from typing import Set, Dict, Union
 
 
 class DomainReport:
@@ -165,7 +165,7 @@ class DomainReport:
 
         ns_data = []
         for ns in nameservers:
-            ns_struct = {"hostname": ns}
+            ns_struct: Dict[str, Union[str, Dict[str, str]]] = {"hostname": ns}
             # TODO add v6 addresses
             ns_ip = {
                 "v4": self.dns.v4_address(ns),

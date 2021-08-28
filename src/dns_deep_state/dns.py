@@ -9,7 +9,7 @@ import dns.resolver
 from dns_deep_state.exceptions import DnsQueryError, DomainError
 
 if TYPE_CHECKING:
-    from typing import Optional, Set, List
+    from typing import Optional, Set, List, Dict
 
 
 class DnsProbe:
@@ -89,7 +89,7 @@ class DnsProbe:
         response = self.lookup(hostname, "NS").rrset
         return set([x.to_text() for x in response])
 
-    def soa(self, hostname: str, name_server: str) -> dict:
+    def soa(self, hostname: str, name_server: str) -> Dict[str, str]:
         """Get a domain's SOA record.
 
         For the purposes of this library, when we're requesting an SOA record,
