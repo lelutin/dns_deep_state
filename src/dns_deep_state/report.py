@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 class DomainReport:
     """Inspect the state of a domain name and report on possible issues."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise information probes."""
         self.psl = PublicSuffixList()
         self.reg = RegistryProbe()
@@ -94,6 +94,11 @@ class DomainReport:
             not expired
             not in a problematic status
             the DNS hosts in the registry have glue records
+
+        :param domain_name: The domain name for which we'll be gathering
+          information into a report.
+
+        :return: A dictionary containing report information.
         """
         info = self.reg.domain_name(domain_name)
         report = {}
@@ -144,6 +149,11 @@ class DomainReport:
                 * hosts found in SRV records
               * it would be a good idea to have a parameter for extra hosts to
                 include in the report
+
+        :param fqdn: The domain name for which we'll gather DNS information
+          into a report.
+
+        :return: A dictionary containing report information.
         """
         report = {}
 

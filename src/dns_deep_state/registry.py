@@ -30,7 +30,7 @@ class RegistryProbe:
         :param fqdn: The fully qualified domain name that we're querying
             information for.
 
-        :returns: A dictionary containing registration information.
+        :return: A dictionary containing registration information.
         """
         try:
             domain = whoisit.domain(fqdn)

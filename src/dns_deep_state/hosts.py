@@ -10,13 +10,12 @@ class HostsProbe:
     it's important to check whether you have such an override in place.
 
     :method: in_database()
+
+    :param database_path: Absolute path to the local hosts database file.
     """
 
     def __init__(self, database_path: str = "/etc/hosts") -> None:
-        """Prepare all relevant drivers for queries.
-
-        :param database_path: absolute path to the local hosts database file.
-        """
+        """Prepare all relevant drivers for queries."""
         self.database_path = database_path
 
         self._hosts_cache = []

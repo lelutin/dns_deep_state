@@ -48,6 +48,8 @@ class DnsProbe:
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.
 
+        :param hostname: Hostname for which we're searching a canonical name.
+
         :return: a string containing the canonical name if found. Otherwise,
             return `None`.
 
@@ -79,6 +81,10 @@ class DnsProbe:
         This will only return the hostname strings. If you want to then send a
         query directly to one of the nameservers, don't forget that you'll need
         to resolve the hosts to IP addresses.
+
+        :param hostname: Hostname used in query for NS type record.
+
+        :return: A set of strings for all found nameservers.
         """
         response = self.lookup(hostname, "NS").rrset
         return set([x.to_text() for x in response])
@@ -97,7 +103,7 @@ class DnsProbe:
             SOA record. The dnspython library is not able to query directly to
             a hostname, so this value needs to be an IP address (v4 or v6).
 
-        :returns: A dictionary containing all information from the SOA record.
+        :return: A dictionary containing all information from the SOA record.
         """
         response = self.lookup(hostname, "SOA", server=name_server).rrset[0]
         # Unpack to hide library details from callers
@@ -118,7 +124,7 @@ class DnsProbe:
 
         :param hostname: The hostname that we'll lookup for.
 
-        :returns: A list of addresses that were found for the A record. If
+        :return: A list of addresses that were found for the A record. If
             nothing is found, the list is empty.
         """
         response = self.lookup(hostname, "A").rrset
@@ -136,7 +142,7 @@ class DnsProbe:
             request towards. This can be used to verify that specific servers
             are responding appropriately.
 
-        :returns: whatever response object we got from the dnspython library.
+        :return: whatever response object we got from the dnspython library.
             Wrappers to this method should handle those response objects
             accordingly and hide the library details from their own responses
             by reformatting. This'll make sure that only a limited number of
