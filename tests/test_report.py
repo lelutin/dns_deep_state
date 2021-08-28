@@ -133,7 +133,7 @@ def test_dns_report(mocker):
     r = reporter.dns_report("example.com")
 
     assert len(r["nameservers"]) == 3
-    assert set([x["hostname"] for x in r["nameservers"]]) == name_servers
+    assert {x["hostname"] for x in r["nameservers"]} == name_servers
     for ns in r["nameservers"]:
         assert ns["soa"]["serial"] == soa_response["serial"]
 

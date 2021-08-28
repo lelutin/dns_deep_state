@@ -81,7 +81,7 @@ class DomainReport:
         report["dns"] = self.dns_report(fqdn)
         # TODO extract portion of report with resolved hosts and give that to
         # the next report method instead of fqdn
-        hostnames = set([])
+        hostnames = set()
         report["hosts"] = self.local_hosts_report(hostnames)
 
         return json.dumps(report)

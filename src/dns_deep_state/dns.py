@@ -87,7 +87,7 @@ class DnsProbe:
         :return: A set of strings for all found nameservers.
         """
         response = self.lookup(hostname, "NS").rrset
-        return set([x.to_text() for x in response])
+        return {x.to_text() for x in response}
 
     def soa(self, hostname: str, name_server: str) -> Dict[str, str]:
         """Get a domain's SOA record.
