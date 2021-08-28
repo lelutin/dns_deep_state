@@ -15,9 +15,12 @@ Rough early specs:
     to specify an alternative configuration file.
 
 """
-import json
-from typing import Set
+from __future__ import annotations
 
+import json
+from typing import TYPE_CHECKING
+
+from dns.resolver import NoAnswer
 from publicsuffix2 import PublicSuffixList
 
 from dns_deep_state.dns import DnsProbe
@@ -25,7 +28,8 @@ from dns_deep_state.hosts import HostsProbe
 from dns_deep_state.registry import RegistryProbe
 from dns_deep_state.exceptions import DomainError
 
-from dns.resolver import NoAnswer
+if TYPE_CHECKING:
+    from typing import Set
 
 
 class DomainReport:

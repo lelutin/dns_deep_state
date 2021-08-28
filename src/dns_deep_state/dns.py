@@ -1,10 +1,15 @@
 """Query the DNS about some aspects of a domain."""
-from typing import Optional, Set, List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import dns.exception
 import dns.resolver
 
 from dns_deep_state.exceptions import DnsQueryError, DomainError
+
+if TYPE_CHECKING:
+    from typing import Optional, Set, List
 
 
 class DnsProbe:
