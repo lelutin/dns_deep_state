@@ -165,17 +165,18 @@ class DomainReport:
 
         ns_data = []
         for ns in nameservers:
-            ns_struct: Dict[str, Union[str, Dict[str, str]]] = {"hostname": ns}
-            # TODO add v6 addresses
-            ns_ip = {
-                "v4": self.dns.v4_address(ns),
-            }
-            # TODO catch errors from this
-            soa = self.dns.soa(fqdn, ns_ip["v4"][0])
+            ns_ips = self.dns.v4_address(ns) + self.dns.v6_address(ns)
+            for ns_ip in ns_ips:
+                ns_struct: Dict[str, Union[str, Dict[str, str]]] = {
+                    "hostname": ns,
+                    "ip_address": ns_ip,
+                }
+                # TODO catch errors from this
+                soa = self.dns.soa(fqdn, ns_ip)
 
-            ns_struct["soa"] = soa
+                ns_struct["soa"] = soa
 
-            ns_data.append(ns_struct)
+                ns_data.append(ns_struct)
 
         report["nameservers"] = ns_data
 

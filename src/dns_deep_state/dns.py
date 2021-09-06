@@ -131,6 +131,18 @@ class DnsProbe:
 
         return [x.to_text() for x in response]
 
+    def v6_address(self, hostname: str) -> List[str]:
+        """Get AAAA record for hostname.
+
+        :param hostname: The hostname that we,ll lookup for.
+
+        :return: A list of addresses that were found for the AAAA record. If
+            nothing is found, the list is empty.
+        """
+        response = self.lookup(hostname, "AAAA").rrset
+
+        return [x.to_text() for x in response]
+
     def lookup(self, hostname: str, lookup_type: str,
                server: Optional[str] = None) -> dns.resolver.Answer:
         """Grab DNS RR of type `lookup_type` for `hostname`.

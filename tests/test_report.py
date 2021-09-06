@@ -7,6 +7,7 @@ using.
 It's also meant to be used as an CLI tool if called as a script.
 """
 import json
+from itertools import chain
 
 import pytest
 
@@ -127,13 +128,23 @@ def test_dns_report(mocker):
     soa_response = {"serial": "199974862"}
     reporter.dns.soa = mocker.Mock(return_value=soa_response)
 
-    ns_ips = ["127.0.0.121", "127.0.0.122", "127.0.0.123"]
-    reporter.dns.v4_address = mocker.Mock(side_effect=ns_ips)
+    ns_v4_ips = [["127.0.0.121"], ["127.0.0.122"], ["127.0.0.123"]]
+    reporter.dns.v4_address = mocker.Mock(side_effect=ns_v4_ips)
+    ns_v6_ips = [["fe80::a"], ["fe80::b"], ["fe80::c"]]
+    reporter.dns.v6_address = mocker.Mock(side_effect=ns_v6_ips)
 
     r = reporter.dns_report("example.com")
 
-    assert len(r["nameservers"]) == 3
+    # All went well: got one IPv4 and one IPv6 for each nameserver and all
+    # responded with the same soa record information
+    assert len(r["nameservers"]) == 6
     assert {x["hostname"] for x in r["nameservers"]} == name_servers
+
+    all_found_ns_ips = [x["ip_address"] for x in r["nameservers"]]
+    all_ips = list(chain.from_iterable(ns_v4_ips)) + list(chain.from_iterable(ns_v6_ips))
+    assert len(all_found_ns_ips) == len(all_ips)
+    assert set(all_found_ns_ips) == set(all_ips)
+
     for ns in r["nameservers"]:
         assert ns["soa"]["serial"] == soa_response["serial"]
 

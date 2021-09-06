@@ -77,18 +77,23 @@ def test_soa(mocker):
     assert soa == expected
 
 
-def test_v4_address(mocker):
-    """Get the IPv4 address of a hostname."""
-    ip_address = "127.0.0.98"
+@pytest.mark.parametrize("ip_address,rr_type,method_name",
+                         [("127.0.0.98", "A", "v4_address"),
+                          ("fe80::98", "AAAA", "v6_address")])
+def test_v46_address(mocker, ip_address, rr_type, method_name):
+    """Successfully get the IPv4 or IPv6 address of a hostname."""
     mock_rr = mocker.Mock(to_text=mocker.Mock(return_value=ip_address))
     mock_answer = mocker.Mock(rrset=[mock_rr])
     stub_resolve = mocker.Mock(return_value=mock_answer)
     mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
 
     resolver = dns.DnsProbe()
-    v4a = resolver.v4_address("domain.tld")
+    lookup_method = getattr(resolver, method_name)
+    resd_addr = lookup_method("domain.tld")
 
-    assert v4a == [ip_address]
+    stub_resolve.assert_called_once_with("domain.tld", rr_type)
+
+    assert resd_addr == [ip_address]
 
 
 @pytest.mark.parametrize("raised_excpt,expected_excpt",
