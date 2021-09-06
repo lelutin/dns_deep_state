@@ -4,10 +4,12 @@
 Hopefully we can get information from all systems as part of the report for
 this test.
 """
+import pytest
 
 from dns_deep_state.report import DomainReport
 
 
+@pytest.mark.integration
 def test_live_full_report():
     """Get information from example.com from live systems."""
     dr = DomainReport()
