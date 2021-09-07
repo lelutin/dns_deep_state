@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import socket
 import dns.exception
 import dns.resolver
 
@@ -25,6 +26,9 @@ class DnsProbe:
         infrastructure.
     """
 
+    # This is the AAAA from a.iana-servers.net.
+    KNOWN_IPV6_IP = "2001:500:8f::53"
+
     def __init__(self) -> None:
         """Prepare DNS resolver."""
         self.res = dns.resolver.Resolver()
@@ -43,7 +47,29 @@ class DnsProbe:
         self.res.timeout = 3
         self.res.lifetime = 3
 
+        self.ipv6_enabled = self._ipv6_connectivity()
+
         self._saved_name_servers = None
+
+    def _ipv6_connectivity(self) -> bool:
+        """Try to connect to a known IPv6 address to test connctivity.
+
+        :return: True if ipv6 connectivity is possible.
+        """
+        s = None
+        ipv6_supported = False
+        if socket.has_ipv6:
+            try:
+                s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+                s.connect((self.KNOWN_IPV6_IP, 53))
+                ipv6_supported = True
+            except OSError:
+                pass
+
+        if s:
+            s.close()
+
+        return ipv6_supported
 
     def canonical_name(self, hostname: str) -> Optional[str]:
         """Given that hostname is a CNAME, resolve its canonical name.

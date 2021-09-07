@@ -6,6 +6,7 @@ using.
 
 It's also meant to be used as an CLI tool if called as a script.
 """
+import copy
 import json
 from itertools import chain
 
@@ -43,6 +44,10 @@ def domain_report_mocked_probes(mocker, probe_used=None):
         if name != probe_used:
             # Mock out any probe that wasn't requested for testing
             mocker.patch(func, mocker.MagicMock)
+
+    if probe_used == "dns":
+        mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
+                     mocker.Mock(return_value=True))
 
     return DomainReport()
 
@@ -129,9 +134,9 @@ def test_dns_report(mocker):
     reporter.dns.soa = mocker.Mock(return_value=soa_response)
 
     ns_v4_ips = [["127.0.0.121"], ["127.0.0.122"], ["127.0.0.123"]]
-    reporter.dns.v4_address = mocker.Mock(side_effect=ns_v4_ips)
+    reporter.dns.v4_address = mocker.Mock(side_effect=copy.deepcopy(ns_v4_ips))
     ns_v6_ips = [["fe80::a"], ["fe80::b"], ["fe80::c"]]
-    reporter.dns.v6_address = mocker.Mock(side_effect=ns_v6_ips)
+    reporter.dns.v6_address = mocker.Mock(side_effect=copy.deepcopy(ns_v6_ips))
 
     r = reporter.dns_report("example.com")
 

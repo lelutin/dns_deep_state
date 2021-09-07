@@ -165,7 +165,10 @@ class DomainReport:
 
         ns_data = []
         for ns in nameservers:
-            ns_ips = self.dns.v4_address(ns) + self.dns.v6_address(ns)
+            ns_ips = self.dns.v4_address(ns)
+            if self.dns.ipv6_enabled:
+                ns_ips.extend(self.dns.v6_address(ns))
+
             for ns_ip in ns_ips:
                 ns_struct: Dict[str, Union[str, Dict[str, str]]] = {
                     "hostname": ns,
