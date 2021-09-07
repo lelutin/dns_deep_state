@@ -52,7 +52,7 @@ class DnsProbe:
         self._saved_name_servers = None
 
     def _ipv6_connectivity(self) -> bool:
-        """Try to connect to a known IPv6 address to test connctivity.
+        """Try to connect to a known IPv6 address to test connectivity.
 
         :return: True if ipv6 connectivity is possible.
         """
