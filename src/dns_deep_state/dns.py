@@ -32,13 +32,6 @@ class DnsProbe:
     def __init__(self) -> None:
         """Prepare DNS resolver."""
         self.res = dns.resolver.Resolver()
-        if not hasattr(self.res, "resolve"):
-            # patch dnspython 1.x library so that we can use this function's
-            # new 2.x name. Both the old and new functions use
-            # the same parameters.
-            # This hack should be removed once debian bullseye is released,
-            # since dnspython 1.16 is packaged up to buster.
-            self.res.resolve = self.res.query  # type: ignore
 
         # Without setting this up, queries that don't turn up a result will get
         # stuck for the default timeout of 30 seconds. On the contrary, setting
