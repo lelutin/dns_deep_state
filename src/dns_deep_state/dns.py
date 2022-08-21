@@ -37,8 +37,8 @@ class DnsProbe:
         # stuck for the default timeout of 30 seconds. On the contrary, setting
         # those too low, like 1, can result in useless timeout errors when
         # certain DNS servers take too long to respond.
-        self.res.timeout = 3
-        self.res.lifetime = 3
+        self.res.timeout = 3  # type: ignore
+        self.res.lifetime = 3  # type: ignore
 
         self.ipv6_enabled = self._ipv6_connectivity()
 
@@ -83,7 +83,8 @@ class DnsProbe:
             IP address.
         """
         try:
-            response = self.lookup(hostname, "CNAME").canonical_name
+            ans = self.lookup(hostname, "CNAME")
+            response = ans.canonical_name  # type: ignore
         except dns.resolver.NoAnswer:
             # This response from DNS servers means that hostname does not have
             # a CNAME RR, which is not per se an error.
@@ -105,7 +106,8 @@ class DnsProbe:
 
         :return: A set of strings for all found nameservers.
         """
-        response = self.lookup(hostname, "NS").rrset
+        ans = self.lookup(hostname, "NS")
+        response = ans.rrset  # type: ignore
         return {x.to_text() for x in response}
 
     def soa(self, hostname: str, name_server_ip: str) -> Dict[str, str]:
@@ -124,7 +126,8 @@ class DnsProbe:
 
         :return: A dictionary containing all information from the SOA record.
         """
-        response = self.lookup(hostname, "SOA", server_ip=name_server_ip).rrset[0]
+        ans = self.lookup(hostname, "SOA", server_ip=name_server_ip)
+        response = ans.rrset[0]  # type: ignore
         # Unpack to hide library details from callers
         res = {
             "mname": response.mname.to_text(),
@@ -146,7 +149,8 @@ class DnsProbe:
         :return: A list of addresses that were found for the A record. If
             nothing is found, the list is empty.
         """
-        response = self.lookup(hostname, "A").rrset
+        ans = self.lookup(hostname, "A")
+        response = ans.rrset  # type: ignore
 
         return [x.to_text() for x in response]
 
@@ -158,7 +162,8 @@ class DnsProbe:
         :return: A list of addresses that were found for the AAAA record. If
             nothing is found, the list is empty.
         """
-        response = self.lookup(hostname, "AAAA").rrset
+        ans = self.lookup(hostname, "AAAA")
+        response = ans.rrset  # type: ignore
 
         return [x.to_text() for x in response]
 
