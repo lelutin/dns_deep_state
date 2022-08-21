@@ -142,6 +142,29 @@ def test_lookup_server_error(mocker, raised_excpt, expected_excpt):
         resolver.lookup("nope.domain.tld", "A")
 
 
+@pytest.mark.parametrize("ns_ip", [None, '127.1.2.3'])
+def test_lookup(mocker, ns_ip):
+    """Run a DNS lookup of a certain type and get a response back."""
+    mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
+                 mocker.Mock(return_value=True))
+
+    fake_response = mocker.Mock()
+    stub_resolve = mocker.Mock(return_value=fake_response)
+    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+
+    resolver = dns.DnsProbe()
+    default_name_servers = resolver.res.nameservers
+
+    result = resolver.lookup('yep.domain.tld', 'A', ns_ip)
+
+    # this may have been changed during the function call but in all cases it
+    # should be set back to the original value once the lookup is finished.
+    assert resolver.res.nameservers == default_name_servers
+    # the actual value is not important, but as long as the return value is the
+    # same thing as what gets returned by the actual dns lookup
+    assert result == fake_response
+
+
 def test_set_nameservers(mocker):
     """Change the list of probed nameservers."""
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
