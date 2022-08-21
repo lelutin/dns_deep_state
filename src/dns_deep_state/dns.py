@@ -108,7 +108,7 @@ class DnsProbe:
         response = self.lookup(hostname, "NS").rrset
         return {x.to_text() for x in response}
 
-    def soa(self, hostname: str, name_server: str) -> Dict[str, str]:
+    def soa(self, hostname: str, name_server_ip: str) -> Dict[str, str]:
         """Get a domain's SOA record.
 
         For the purposes of this library, when we're requesting an SOA record,
@@ -118,13 +118,13 @@ class DnsProbe:
         :param hostname: The domain name for which we're looking up the SOA
             record.
 
-        :param name_server: IP address of the DNS server we're probing for the
+        :param name_server_ip: IP address of the DNS server we're probing for the
             SOA record. The dnspython library is not able to query directly to
             a hostname, so this value needs to be an IP address (v4 or v6).
 
         :return: A dictionary containing all information from the SOA record.
         """
-        response = self.lookup(hostname, "SOA", server=name_server).rrset[0]
+        response = self.lookup(hostname, "SOA", server_ip=name_server_ip).rrset[0]
         # Unpack to hide library details from callers
         res = {
             "mname": response.mname.to_text(),
@@ -163,15 +163,15 @@ class DnsProbe:
         return [x.to_text() for x in response]
 
     def lookup(self, hostname: str, lookup_type: str,
-               server: Optional[str] = None) -> dns.resolver.Answer:
+               server_ip: Optional[str] = None) -> dns.resolver.Answer:
         """Grab DNS RR of type `lookup_type` for `hostname`.
 
         :param hostname: The hostname for which we're requesting information
             from the DNS.
         :param lookup_type: The type of DNS record that we're requesting.
-        :param server: Optional hostname of the DNS server we're sending our
-            request towards. This can be used to verify that specific servers
-            are responding appropriately.
+        :param server_ip: Optional IP address of the DNS server we're sending
+            our request towards. This can be used to verify that specific
+            servers are responding appropriately.
 
         :return: whatever response object we got from the dnspython library.
             Wrappers to this method should handle those response objects
@@ -189,8 +189,8 @@ class DnsProbe:
         :raises dns.resolver.NoAnswer: in order for wrapper methods to handle
             this case.
         """
-        if server is not None:
-            self._set_nameservers([server])
+        if server_ip is not None:
+            self._set_nameservers([server_ip])
 
         try:
             response = self.res.resolve(hostname, lookup_type)

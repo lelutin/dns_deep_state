@@ -71,8 +71,8 @@ def test_name_servers(mocker):
 def test_soa(mocker):
     """Request SOA for a hostname from a specific nameserver."""
     expected = {
-        "mname": "ns1.domain.tld",
-        "rname": "hostmaster.domain.tld",
+        "mname": "ns1.example.com",
+        "rname": "hostmaster.example.com",
         "serial": "1630021470",
         "refresh": "86400",
         "retry": "7200",
@@ -100,7 +100,7 @@ def test_soa(mocker):
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
                  mocker.Mock(return_value=True))
     resolver = dns.DnsProbe()
-    soa = resolver.soa("domain.tld", "ns1.domain.tld")
+    soa = resolver.soa("example.com", "127.1.2.3")
 
     assert soa == expected
 
