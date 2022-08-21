@@ -42,7 +42,7 @@ class DnsProbe:
 
         self.ipv6_enabled = self._ipv6_connectivity()
 
-        self._saved_name_servers = None
+        self._saved_name_servers: Optional[List[str]] = None
 
     def _ipv6_connectivity(self) -> bool:
         """Try to connect to a known IPv6 address to test connectivity.
