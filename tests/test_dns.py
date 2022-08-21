@@ -33,10 +33,12 @@ def test_canonical_name(mocker):
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
                  mocker.Mock(return_value=True))
     resolver = dns.DnsProbe()
-    stub_resolve = mocker.Mock(
+    stub_lookup = mocker.Mock(
         return_value=mocker.Mock(canonical_name="c.domain.tld"))
-    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+    mocker.patch("dns_deep_state.dns.DnsProbe.lookup", stub_lookup)
     canon = resolver.canonical_name("sub.domain.tld")
+
+    stub_lookup.assert_called_once_with("sub.domain.tld", "CNAME")
     assert canon == "c.domain.tld"
 
 
@@ -45,9 +47,11 @@ def test_canonical_name_not_found(mocker):
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
                  mocker.Mock(return_value=True))
     resolver = dns.DnsProbe()
-    stub_resolve = mocker.Mock(side_effect=NoAnswer)
-    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+    stub_lookup = mocker.Mock(side_effect=NoAnswer)
+    mocker.patch("dns_deep_state.dns.DnsProbe.lookup", stub_lookup)
     canon = resolver.canonical_name("nope.domain.tld")
+
+    stub_lookup.assert_called_once_with("nope.domain.tld", "CNAME")
     assert canon is None
 
 
@@ -59,12 +63,14 @@ def test_name_servers(mocker):
         mocker.Mock(to_text=name_server_texts),
         mocker.Mock(to_text=name_server_texts),
         mocker.Mock(to_text=name_server_texts)]
-    stub_resolve = mocker.Mock(return_value=mocker.Mock(rrset=mock_rrset))
-    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+    stub_lookup = mocker.Mock(return_value=mocker.Mock(rrset=mock_rrset))
+    mocker.patch("dns_deep_state.dns.DnsProbe.lookup", stub_lookup)
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
                  mocker.Mock(return_value=True))
     resolver = dns.DnsProbe()
     ns = resolver.name_servers("domain.tld")
+
+    stub_lookup.assert_called_once_with("domain.tld", "NS")
     assert ns == name_servers
 
 
@@ -91,17 +97,17 @@ def test_soa(mocker):
         "expire": expected["expire"],
         "minimum": expected["ttl"],
     }
-
     mock_rr = mocker.Mock(**lib_rr_params)
-    mock_soa = mocker.Mock(rrset=[mock_rr])
-    stub_resolve = mocker.Mock(return_value=mock_soa)
-    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+    mock_answer = mocker.Mock(rrset=[mock_rr])
+    stub_lookup = mocker.Mock(return_value=mock_answer)
+    mocker.patch("dns_deep_state.dns.DnsProbe.lookup", stub_lookup)
 
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
                  mocker.Mock(return_value=True))
     resolver = dns.DnsProbe()
     soa = resolver.soa("example.com", "127.1.2.3")
 
+    stub_lookup.assert_called_once_with("example.com", "SOA", server_ip="127.1.2.3")
     assert soa == expected
 
 
@@ -112,8 +118,8 @@ def test_v46_address(mocker, ip_address, rr_type, method_name):
     """Successfully get the IPv4 or IPv6 address of a hostname."""
     mock_rr = mocker.Mock(to_text=mocker.Mock(return_value=ip_address))
     mock_answer = mocker.Mock(rrset=[mock_rr])
-    stub_resolve = mocker.Mock(return_value=mock_answer)
-    mocker.patch("dns.resolver.Resolver.resolve", stub_resolve)
+    stub_lookup = mocker.Mock(return_value=mock_answer)
+    mocker.patch("dns_deep_state.dns.DnsProbe.lookup", stub_lookup)
 
     mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
                  mocker.Mock(return_value=True))
@@ -121,7 +127,7 @@ def test_v46_address(mocker, ip_address, rr_type, method_name):
     lookup_method = getattr(resolver, method_name)
     resd_addr = lookup_method("domain.tld")
 
-    stub_resolve.assert_called_once_with("domain.tld", rr_type)
+    stub_lookup.assert_called_once_with("domain.tld", rr_type)
 
     assert resd_addr == [ip_address]
 
