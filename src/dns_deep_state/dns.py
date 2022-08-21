@@ -216,6 +216,7 @@ class DnsProbe:
             self._reset_nameservers()
             raise DnsQueryError(err)
 
+        self._reset_nameservers()
         return response
 
     def _set_nameservers(self, name_servers: List[str]) -> None:
