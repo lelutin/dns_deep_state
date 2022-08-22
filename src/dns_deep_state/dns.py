@@ -10,7 +10,7 @@ import dns.resolver
 from dns_deep_state.exceptions import DnsQueryError, DomainError
 
 if TYPE_CHECKING:
-    from typing import Optional, Set, List, Dict
+    from typing import Optional, Set, List, Dict  # pragma: no cover
 
 
 class DnsProbe:

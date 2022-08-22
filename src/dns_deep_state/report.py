@@ -29,7 +29,7 @@ from dns_deep_state.registry import RegistryProbe
 from dns_deep_state.exceptions import DomainError
 
 if TYPE_CHECKING:
-    from typing import Set, Dict, Union
+    from typing import Set, Dict, Union  # pragma: no cover
 
 
 class DomainReport:
