@@ -18,6 +18,14 @@ def test__ipv6_conectivity(mocker):
     assert resolver.ipv6_enabled is True
 
 
+def test__socket_no_ipv6(mocker):
+    """The socket module does not have IPv6 capabilities."""
+    mocker.patch('socket.has_ipv6', False)
+    resolver = dns.DnsProbe()
+
+    assert resolver.ipv6_enabled is False
+
+
 def test__failed_ipv6_conectivity(mocker):
     """IPv6 connectivity is not possible."""
     m = mocker.patch('socket.socket.connect', mocker.Mock(side_effect=OSError))

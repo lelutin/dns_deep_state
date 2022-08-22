@@ -49,18 +49,16 @@ class DnsProbe:
 
         :return: True if ipv6 connectivity is possible.
         """
-        s = None
         ipv6_supported = False
         if socket.has_ipv6:
+            s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
             try:
-                s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
                 s.connect((self.KNOWN_IPV6_IP, 53))
                 ipv6_supported = True
             except OSError:
                 pass
-
-        if s:
-            s.close()
+            finally:
+                s.close()
 
         return ipv6_supported
 
