@@ -88,3 +88,16 @@ def test_domain_rdap_server_weak_ssl(mocker):
     info = reg.domain_name("nic.work")
 
     assert info == expected_rdap_info
+
+
+def test_domain_rdap_other_query_error(mocker):
+    """Replies from RDAP servers with too weak ssl should still function."""
+    mocker.patch("whoisit.bootstrap", mocker.Mock)
+    raised_exc = whoisit.errors.QueryError("Some other error")
+    domain_method = mocker.Mock(side_effect=raised_exc)
+    mocker.patch("whoisit.domain", domain_method)
+
+    reg = RegistryProbe()
+
+    with pytest.raises(whoisit.errors.QueryError):
+        reg.domain_name("nic.work")
