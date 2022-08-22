@@ -19,7 +19,7 @@ from .test_hosts import hosts_file
 from .test_registry import expected_rdap_info
 
 
-def domain_report_mocked_probes(mocker, probe_used=None):
+def domain_report_mocked_probes(mocker, probe_used=None, ipv6=True):
     """Instantiate DomainReport and mock out probes.
 
     If probe_used is not None, then one probe will be left untouched.
@@ -47,7 +47,7 @@ def domain_report_mocked_probes(mocker, probe_used=None):
 
     if probe_used == "dns":
         mocker.patch('dns_deep_state.dns.DnsProbe._ipv6_connectivity',
-                     mocker.Mock(return_value=True))
+                     mocker.Mock(return_value=ipv6))
 
     return DomainReport()
 
@@ -118,9 +118,10 @@ def test_dns_report_no_nameservers(mocker):
         reporter.dns_report("example.com")
 
 
-def test_dns_report(mocker):
+@pytest.mark.parametrize("ipv6_enabled", [False, True])
+def test_dns_report(mocker, ipv6_enabled):
     """Get all probed DNS information as a report."""
-    reporter = domain_report_mocked_probes(mocker, probe_used="dns")
+    reporter = domain_report_mocked_probes(mocker, probe_used="dns", ipv6=ipv6_enabled)
 
     # We don't care at this level how the lookup is implemented. We only care
     # that when certain name servers are returned we get the proper form of
@@ -135,18 +136,24 @@ def test_dns_report(mocker):
 
     ns_v4_ips = [["127.0.0.121"], ["127.0.0.122"], ["127.0.0.123"]]
     reporter.dns.v4_address = mocker.Mock(side_effect=copy.deepcopy(ns_v4_ips))
-    ns_v6_ips = [["fe80::a"], ["fe80::b"], ["fe80::c"]]
-    reporter.dns.v6_address = mocker.Mock(side_effect=copy.deepcopy(ns_v6_ips))
+
+    all_ips = list(chain.from_iterable(ns_v4_ips))
+    if ipv6_enabled:
+        ns_v6_ips = [["fe80::a"], ["fe80::b"], ["fe80::c"]]
+        reporter.dns.v6_address = mocker.Mock(side_effect=copy.deepcopy(ns_v6_ips))
+        all_ips += list(chain.from_iterable(ns_v6_ips))
 
     r = reporter.dns_report("example.com")
 
     # All went well: got one IPv4 and one IPv6 for each nameserver and all
     # responded with the same soa record information
-    assert len(r["nameservers"]) == 6
+    if ipv6_enabled:
+        assert len(r["nameservers"]) == 6
+    else:
+        assert len(r["nameservers"]) == 3
     assert {x["hostname"] for x in r["nameservers"]} == name_servers
 
     all_found_ns_ips = [x["ip_address"] for x in r["nameservers"]]
-    all_ips = list(chain.from_iterable(ns_v4_ips)) + list(chain.from_iterable(ns_v6_ips))
     assert len(all_found_ns_ips) == len(all_ips)
     assert set(all_found_ns_ips) == set(all_ips)
 
